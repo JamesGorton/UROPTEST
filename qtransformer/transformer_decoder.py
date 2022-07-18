@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 import torch
 import torch.nn as nn
 import qLinear
-
+import quant_encoder_layer
 from fairseq import utils
 from fairseq.distributed import fsdp_wrap
 from fairseq.models import FairseqIncrementalDecoder
@@ -190,7 +190,10 @@ class TransformerDecoderBase(FairseqIncrementalDecoder):
             )
 
     def build_decoder_layer(self, cfg, no_encoder_attn=False):
-        layer = transformer_layer.TransformerDecoderLayerBase(cfg, no_encoder_attn)
+        if cfg.quant_linear:
+            layer = quant_encoder_layer.TransformerDecoderLayerBase(cfg, no_encoder_attn)
+        else:
+            layer = transformer_layer.TransformerDecoderLayerBase(cfg, no_encoder_attn)
         checkpoint = cfg.checkpoint_activations
         if checkpoint:
             offload_to_cpu = cfg.offload_activations
