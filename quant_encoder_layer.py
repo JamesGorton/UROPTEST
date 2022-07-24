@@ -54,6 +54,8 @@ class TransformerEncoderLayerBase(nn.Module):
             float(activation_dropout_p), module_name=self.__class__.__name__
         )
         self.normalize_before = cfg.encoder.normalize_before
+        self.norm1 = nn.BatchNorm1d(cfg.encoder.ffn_embed_dim)
+        # import pdb; pdb.set_trace()
         self.fc1 = self.build_fc1(
             self.embed_dim,
             cfg.encoder.ffn_embed_dim,
@@ -365,7 +367,10 @@ class TransformerEncoderLayerBase(nn.Module):
             residual = x
             if self.normalize_before:
                 x = self.final_layer_norm(x)
-            x = self.activation_fn(self.fc1(x))
+            x = self.fc1(x).permute(0,2,1)
+            # import pdb; pdb.set_trace()
+            x = self.norm1(x)
+            x = self.activation_fn(x)
             x = self.activation_dropout_module(x)
             x = self.fc2(x)
 
@@ -477,6 +482,8 @@ class TransformerDecoderLayerBase(nn.Module):
             if utils.safe_getattr(cfg, "scale_resids", False)
             else None
         )
+        
+        self.norm1 = nn.BatchNorm1d(cfg.decoder.ffn_embed_dim)
 
         self.fc1 = self.build_fc1(
             self.embed_dim,
@@ -657,8 +664,10 @@ class TransformerDecoderLayerBase(nn.Module):
         residual = x
         if self.normalize_before:
             x = self.final_layer_norm(x)
-
-        x = self.activation_fn(self.fc1(x))
+        
+        x = self.fc1(x).permute(0,2,1)
+        x = self.norm1(x)
+        x = self.activation_fn(x)
         x = self.activation_dropout_module(x)
         if self.ffn_layernorm is not None:
             x = self.ffn_layernorm(x)

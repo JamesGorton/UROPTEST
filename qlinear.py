@@ -8,7 +8,9 @@ def get_dynamic_scale(x, bits, with_grad=False):
     """Calculate dynamic scale for quantization from input by taking the
     maximum absolute value from x and number of bits"""
     with torch.set_grad_enabled(with_grad):
-        threshold = x.abs().max()
+        rex = x.reshape(-1,)
+        k = len(rex)
+        threshold = torch.topk(rex.abs(), int(0.95*k), largest=False)[0].max()
     return get_scale(bits, threshold)
 
 def get_scale(bits, threshold):
@@ -19,11 +21,12 @@ def calc_max_quant_value(bits):
     """Calculate the maximum symmetric quantized value according to number of bits"""
     return 2 ** (bits - 1) - 1
 
-def quantize(input): # bits = 8
+def quantize(input, bits=16): # bits = 32
     """Do linear quantization to input according to a scale and number of bits"""
-    thresh = 127 # calc_max_quant_value(bits) 
-    scale = get_dynamic_scale(input,8)
-    return input.mul(scale).round().clamp(-thresh, thresh)
+    thresh =  calc_max_quant_value(bits) 
+    scale = get_dynamic_scale(input, bits)
+    #import pdb; pdb.set_trace()
+    return input.mul(scale).round().clamp(-thresh, thresh).div(scale)
 
 class LinearFunction(Function):
 
@@ -33,12 +36,13 @@ class LinearFunction(Function):
     def forward(ctx, input, weight, bias=None):
         input = quantize(input)
         weight = quantize(weight)
-        
+        if bias is not None:
+            bias = quantize(bias)
         ctx.save_for_backward(input, weight, bias)
         
         output = input.matmul(weight.t())
-        if bias is not None:
-            output += bias.unsqueeze(0).expand_as(output)
+        
+        #  import pdb; pdb.set_trace()
         return output
 
     # This function has only a single output, so it gets only one gradient
@@ -51,6 +55,7 @@ class LinearFunction(Function):
         # optional inputs.
         input, weight, bias = ctx.saved_tensors
         grad_input = grad_weight = grad_bias = None
+        #import pdb; pdb.set_trace()
         grad_output = quantize(grad_output)
         
 
@@ -59,16 +64,14 @@ class LinearFunction(Function):
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
         #import pdb; pdb.set_trace()
-        if ctx.needs_input_grad[0]:
-            grad_input = grad_output.matmul(weight)
-        if ctx.needs_input_grad[1]:
-            grad_weight = grad_output.permute(0,2,1).matmul(input)
+        grad_input = grad_output.matmul(weight)
+        grad_weight = grad_output.permute(0,2,1).matmul(input)
         
-        if bias is not None and ctx.needs_input_grad[2]:
+        if bias is not None:
             grad_bias = grad_output.sum(0)
         #import pdb; pdb.set_trace()
-
-        return quantize(grad_input), grad_weight, grad_bias
+        
+        return grad_input, grad_weight, grad_bias
 
 
 class qLinear(nn.Module):
