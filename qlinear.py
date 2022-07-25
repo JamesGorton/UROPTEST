@@ -16,8 +16,12 @@ def get_dynamic_scale(x, bits, with_grad=False):
 
 def get_scale(bits, threshold):
     """Calculate scale for quantization according to some constant and number of bits"""
-    return ceil(log2(threshold))
-
+    try:
+        return ceil(log2(threshold))
+    except ValueError:
+        return 0 
+    
+    
 def quantize(input, bits=16): # bits = 32
     """Do linear quantization to input according to a scale and number of bits"""
     thresh = 2**(bits-1)-1
