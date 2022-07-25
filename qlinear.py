@@ -3,6 +3,7 @@ from torch.autograd import Function
 import torch
 from torch import nn
 from torch.nn import functional as F
+from math import log2, ceil
 
 def get_dynamic_scale(x, bits, with_grad=False):
     """Calculate dynamic scale for quantization from input by taking the
@@ -15,16 +16,13 @@ def get_dynamic_scale(x, bits, with_grad=False):
 
 def get_scale(bits, threshold):
     """Calculate scale for quantization according to some constant and number of bits"""
-    return calc_max_quant_value(bits) / threshold
-
-def calc_max_quant_value(bits):
-    """Calculate the maximum symmetric quantized value according to number of bits"""
-    return 2 ** (bits - 1) - 1
+    return ceil(log2(threshold))
 
 def quantize(input, bits=16): # bits = 32
     """Do linear quantization to input according to a scale and number of bits"""
-    thresh =  calc_max_quant_value(bits) 
-    scale = get_dynamic_scale(input, bits)
+    thresh = 2**(bits-1)-1
+    
+    scale = 2 ** (bits - get_dynamic_scale(input, bits) - 1)
     #import pdb; pdb.set_trace()
     return input.mul(scale).round().clamp(-thresh, thresh).div(scale)
 
