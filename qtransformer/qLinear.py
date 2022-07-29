@@ -99,7 +99,7 @@ class qLinear(nn.Module):
             self.register_parameter('bias', None)
 
         # Not a very smart way to initialize weights
-        nn.init.uniform_(self.weight, -0.1, 0.1)
+        :::::::::::::::::::::::::::::nn.init.uniform_(self.weight, -0.1, 0.1)
         if self.bias is not None:
             nn.init.uniform_(self.bias, -0.1, 0.1)
 
