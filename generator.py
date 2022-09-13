@@ -74,3 +74,23 @@ for i in msfp_set:
       virt_env= "/scratch/ssd001/home/iliash/virts/lowb/",
       exec_dir= f"{expfolder}",
     )
+    
+    
+    
+for i in qt_set:
+    _temp = slurm_script_template[:]
+    prefix = f'PYTORCH_FAIRSEQ_CACHE="{expfolder}" TORCH_HOME="{expfolder}" CUDA_VISIBLE_DEVICES=0 '
+
+    command = prefix + f"fairseq-train {data} --arch qtransformer --share-decoder-input-output-embed --optimizer adam --adam-betas '(0.9, 0.98)' --clip-norm 0.0 --lr 5e-4 --lr-scheduler inverse_sqrt --warmup-updates 4000 --dropout 0.3 --weight-decay 0.0001 --criterion label_smoothed_cross_entropy --label-smoothing 0.1 --max-tokens 4096 --eval-bleu --eval-bleu-detok moses --eval-bleu-remove-bpe --eval-bleu-print-samples --best-checkpoint-metric bleu --maximize-best-checkpoint-metric "
+    command += f"--batch-size {batch_size} --save-dir ./checkpoints/qt_{i[0]}{i[1]}{i[2]}{i[3]} --tensorboard-logdir ./dir/qt_{i[0]}{i[1]}{i[2]}{i[3]} --max-epoch {max_epoch} --save-interval {save_interval} --quant-scheme fixed --quant-percentile 1 --quant-bitwidth [{i[0]},{i[1]},{i[2]},{i[3]}] --quant-bucketsize 16 "
+    command += f"--eval-bleu-args {{"beam": 5, "max_len_a": 1.2, "max_len_b": 10}} "
+    _temp += command
+
+    format_and_save(
+      name = f"qt_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
+      script = f"{scriptsfolder}/qt_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
+      run_script = f"{scriptsfolder}/qt_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
+      template = _temp,
+      virt_env= "/scratch/ssd001/home/iliash/virts/lowb/",
+      exec_dir= f"{expfolder}",
+    )
