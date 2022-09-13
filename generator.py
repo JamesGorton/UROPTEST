@@ -55,6 +55,7 @@ batch_size = 4096
 max_epoch = 100
 save_interval = max_epoch//10
 scriptsfolder = iwslt14_en2de
+eval_bleu_args = {"beam": 5, "max_len_a": 1.2, "max_len_b": 10}
 
 for i in msfp_set:
     _temp = slurm_script_template[:]
@@ -64,7 +65,7 @@ for i in msfp_set:
       print(f"{outname} exists already...")
       continue
 
-    command = prefix + f"fairseq-train {data} --arch qtransformer --share-decoder-input-output-embed --optimizer adam --adam-betas '(0.9, 0.98)' --clip-norm 0.0 --lr 5e-4 --lr-scheduler inverse_sqrt --warmup-updates 4000 --dropout 0.3 --weight-decay 0.0001 --criterion label_smoothed_cross_entropy --label-smoothing 0.1 --max-tokens 4096 --eval-bleu --eval-bleu-args '{"beam": 5, "max_len_a": 1.2, "max_len_b": 10}' --eval-bleu-detok moses --eval-bleu-remove-bpe --eval-bleu-print-samples --best-checkpoint-metric bleu --maximize-best-checkpoint-metric"
+    command = prefix + f"fairseq-train {data} --arch qtransformer --share-decoder-input-output-embed --optimizer adam --adam-betas '(0.9, 0.98)' --clip-norm 0.0 --lr 5e-4 --lr-scheduler inverse_sqrt --warmup-updates 4000 --dropout 0.3 --weight-decay 0.0001 --criterion label_smoothed_cross_entropy --label-smoothing 0.1 --max-tokens 4096 --eval-bleu --eval-bleu-args {eval_bleu_args} --eval-bleu-detok moses --eval-bleu-remove-bpe --eval-bleu-print-samples --best-checkpoint-metric bleu --maximize-best-checkpoint-metric"
     command += f"--batch-size {batch_size} --save-dir ./checkpoints/msfp_{i[0]}{i[1]}{i[2]}{i[3]} --tensorboard-logdir ./dir/msfp_{i[0]}{i[1]}{i[2]}{i[3]} --max-epoch {max_epoch} --save-interval {save_interval} --quant-scheme msfp --quant-percentile 1 --quant-bitwidth [{i[0]},{i[1]},{i[2]},{i[3]}] --quant-bucketsize 16"
 
     _temp += command
