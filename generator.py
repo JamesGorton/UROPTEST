@@ -68,8 +68,8 @@ for i in msfp_set:
 
     format_and_save(
       name = f"msfp_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
-      script = f"{scriptsfolder}/{name}",
-      run_script = f"{scriptsfolder}/{name}",
+      script = f"{scriptsfolder}/msfp_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
+      run_script = f"{scriptsfolder}/msfp_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
       template = _temp,
       virt_env= "/scratch/ssd001/home/iliash/virts/lowb/",
       exec_dir= f"{expfolder}",
