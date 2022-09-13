@@ -71,7 +71,7 @@ for i in msfp_set:
     _temp += command
 
     format_and_save(
-      name = f"{msfp_{i[0]}{i[1]}{i[2]}{i[3]}}.sh",
+      name = f"msfp_{i[0]}{i[1]}{i[2]}{i[3]}.sh",
       script = f"{scriptsfolder}/{name}",
       run_script = f"{scriptsfolder}/{name}",
       template = _temp,
