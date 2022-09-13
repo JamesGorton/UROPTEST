@@ -54,7 +54,7 @@ data = "/local/scratch-3/gy261/fairseq/data-bin/iwslt14.tokenized.de-en"
 batch_size = 4096
 max_epoch = 100
 save_interval = max_epoch//10
-scriptsfolder = iwslt14_en2de
+scriptsfolder = "iwslt14_en2de"
 eval_bleu_args = {"beam": 5, "max_len_a": 1.2, "max_len_b": 10}
 
 for i in msfp_set:
