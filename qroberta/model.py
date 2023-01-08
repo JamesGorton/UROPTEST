@@ -216,6 +216,13 @@ class RobertaModel(FairseqEncoderModel):
             default=-1,
             help="number of feedforward blocks to remove in each transformer layer, -1 means keeping all ffn blocks",
         )
+        parser.add_argument(
+            "--quant-scheme",
+            type=int,
+            metavar="D",
+            default=-1,
+            help="number of feedforward blocks to remove in each transformer layer, -1 means keeping all ffn blocks",
+        )
 
     @classmethod
     def build_model(cls, args, task):
