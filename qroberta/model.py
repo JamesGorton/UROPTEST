@@ -19,7 +19,7 @@ from fairseq.models import (
     register_model,
     register_model_architecture,
 )
-from fairseq.models.qtransformer import DEFAULT_MIN_PARAMS_TO_WRAP, TransformerEncoder
+from fairseq.models.qtransformer import QLinear, DEFAULT_MIN_PARAMS_TO_WRAP, TransformerEncoder
 from fairseq.modules import LayerNorm
 from fairseq.modules.quant_noise import quant_noise as apply_quant_noise_
 from fairseq.modules.transformer_sentence_encoder import init_bert_params
@@ -472,12 +472,12 @@ class RobertaLMHead(nn.Module):
 
     def __init__(self, embed_dim, output_dim, activation_fn, weight=None):
         super().__init__()
-        self.dense = nn.Linear(embed_dim, embed_dim)
+        self.dense = nn.QLinear(embed_dim, embed_dim, None, quantconfig)
         self.activation_fn = utils.get_activation_fn(activation_fn)
         self.layer_norm = LayerNorm(embed_dim)
 
         if weight is None:
-            weight = nn.Linear(embed_dim, output_dim, bias=False).weight
+            weight = nn.QLinear(embed_dim, output_dim, None, quantconfig).weight
         self.weight = weight
         self.bias = nn.Parameter(torch.zeros(output_dim))
 
@@ -510,11 +510,11 @@ class RobertaClassificationHead(nn.Module):
         do_spectral_norm=False,
     ):
         super().__init__()
-        self.dense = nn.Linear(input_dim, inner_dim)
+        self.dense = nn.QLinear(input_dim, inner_dim, None, quantconfig)
         self.activation_fn = utils.get_activation_fn(activation_fn)
         self.dropout = nn.Dropout(p=pooler_dropout)
         self.out_proj = apply_quant_noise_(
-            nn.Linear(inner_dim, num_classes), q_noise, qn_block_size
+            nn.QLinear(inner_dim, num_classes, None, quantconfig), q_noise, qn_block_size
         )
         if do_spectral_norm:
             if q_noise != 0:
