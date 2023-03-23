@@ -87,7 +87,7 @@ def evaluate_step(engine, batch):
     
 train_evaluator = Engine(evaluate_step)
 validation_evaluator = Engine(evaluate_step)
-metric= load_metric("accuracy")
+#metric= load_metric("accuracy")
 from ignite.metrics import Accuracy
 
 Accuracy().attach(train_evaluator, 'accuracy')
