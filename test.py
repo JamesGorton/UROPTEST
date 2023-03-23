@@ -1,5 +1,5 @@
 from deepspeed.profiling.flops_profiler import FlopsProfiler
-from transformers import AdamW, OPTForSequenceClassification, TrainingArguments, AutoTokenizer, DataCollatorWithPadding
+from transformers import AdamW, AutoModelForSequenceClassification, TrainingArguments, AutoTokenizer, DataCollatorWithPadding
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from ignite.utils import manual_seed
@@ -7,7 +7,7 @@ from ignite.contrib.handlers import PiecewiseLinear
 
 manual_seed(42)
 raw_data = load_dataset("imdb")
-ckpt = 'facebook/opt-1.3b'
+ckpt = 'bert-base-cased'
 tokenizer = AutoTokenizer.from_pretrained(ckpt)
 
 def tokenize_function(examples):
@@ -23,7 +23,7 @@ small_eval_dataset = tokenized_datasets["test"].shuffle().select(range(5000))
 train_dataloader = DataLoader(small_train_dataset, shuffle=True, batch_size=8)
 eval_dataloader = DataLoader(small_eval_dataset, batch_size=8)
 
-model=OPTForSequenceClassification.from_pretrained(ckpt, num_labels=2)
+model=AutoModelForSequenceClassification.from_pretrained(ckpt, num_labels=2)
 optimizer = AdamW(model.parameters(), lr=5e-5)
 num_epochs = 10
 num_training_steps = num_epochs * len(train_dataloader)
