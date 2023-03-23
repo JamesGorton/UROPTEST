@@ -1,5 +1,5 @@
 from deepspeed.profiling.flops_profiler import FlopsProfiler
-from transformers import Trainer, AutoModelForSequenceClassification, TrainingArguments, AutoTokenizer, DataCollatorWithPadding
+from transformers import Trainer, OPTForSequenceClassification, TrainingArguments, AutoTokenizer, DataCollatorWithPadding
 from datasets import load_dataset
 
 raw_data = load_dataset("glue", "mrpc")
@@ -11,8 +11,9 @@ tokenized_datasets = raw_data.map(tokenize_function, batched=True)
 data_collator = DataCollatorWithPadding(tokenizer)
 
 training_args = TrainingArguments("config.json")
-
-model=AutoModelForSequenceClassification.from_pretrained(ckpt, num_labels=2)
+model=OPTForSequenceClassification.from_pretrained(ckpt)
+num_labels = len(model.config.id2label)
+model=OPTForSequenceClassification.from_pretrained(ckpt, num_labels=num_labels)
 prof = FlopsProfiler(model)
 
 profile_step = 5
