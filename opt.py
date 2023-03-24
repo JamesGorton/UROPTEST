@@ -17,7 +17,7 @@ train_dataset = data["train"].shuffle()
 
 train_dataloader = DataLoader(train_dataset, shuffle=True, batch_size=8)
 
-model=AutoModelForSequenceClassification.from_pretrained(ckpt, num_labels=2)
+
 optimizer = AdamW(model.parameters(), lr=2e-4)
 num_epochs = 10
 num_training_steps = num_epochs * len(train_dataloader)
